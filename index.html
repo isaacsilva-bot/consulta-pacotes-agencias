@@ -1,83 +1,355 @@
-<!-- Importação da API do Google para contornar restrições de CORS -->
-<script src="https://www.gstatic.com/charts/loader.js"></script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Pacotes SPX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --shopee-orange: #EE4D2D;
+            --shopee-dark: #d73211;
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-color: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #EE4D2D 0%, #ff7337 50%, #d73211 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: var(--glass-shadow);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+        }
+
+        .search-input-wrapper label {
+            display: block;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-search {
+            background: white;
+            color: var(--shopee-orange);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-search:hover {
+            background: #fff0ed;
+            transform: translateY(-2px);
+        }
+
+        .agency-header {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-left: 6px solid var(--shopee-orange);
+        }
+
+        .agency-info h2 {
+            font-size: 20px;
+            color: #222;
+        }
+
+        .agency-info span {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .total-badge {
+            background: var(--shopee-orange);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 30px;
+            text-align: center;
+        }
+
+        .total-badge .number {
+            font-size: 22px;
+            font-weight: 700;
+            display: block;
+            line-height: 1;
+        }
+
+        .total-badge .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            opacity: 0.9;
+        }
+
+        .buyer-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .buyer-header {
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 12px;
+        }
+
+        .buyer-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--shopee-orange);
+        }
+
+        .buyer-phone {
+            font-size: 13px;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        .packages-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+        }
+
+        .packages-table th {
+            text-align: left;
+            font-size: 12px;
+            color: #888;
+            padding: 8px;
+            text-transform: uppercase;
+        }
+
+        .packages-table td {
+            padding: 10px 8px;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: #ffebe8;
+            color: var(--shopee-orange);
+        }
+
+        .action-text {
+            color: #d73211;
+            font-weight: 500;
+        }
+
+        .state-box {
+            text-align: center;
+            color: white;
+            padding: 40px 20px;
+            display: none;
+        }
+
+        .state-box.active {
+            display: block;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .results-container.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="glass header">
+        <h1>Consulta de Pacotes SPX</h1>
+        <p>Sistema de localização de entregas por agência</p>
+    </div>
+
+    <div class="glass">
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <label for="searchInput">Digite o Código DOP da Agência</label>
+                <input type="text" id="searchInput" placeholder="Ex: 7264" autocomplete="off">
+            </div>
+            <button class="btn-search" onclick="searchDOP()">🔍 Consultar</button>
+        </div>
+    </div>
+
+    <div id="initialState" class="glass state-box active">
+        <h3>Aguardando Pesquisa</h3>
+        <p>Digite o Código DOP para pesquisar os pacotes da agência.</p>
+    </div>
+
+    <div id="loading" class="glass state-box">
+        <div class="spinner"></div>
+        <p>Carregando dados da planilha...</p>
+    </div>
+
+    <div id="emptyState" class="glass state-box">
+        <h3 id="emptyTitle">Nenhum resultado encontrado</h3>
+        <p id="emptyMessage">Verifique se o código DOP inserido está correto.</p>
+    </div>
+
+    <div id="results" class="results-container"></div>
+</div>
 
 <script>
-    // CONFIGURAÇÃO
-    const SPREADSHEET_ID = '1p0IHPneaj5v4VlrSbXkaSg5f9NSzBqT_qdUqu3A9Al0';
-    const SHEET_NAME = 'Página1';
-
-    // Carrega a biblioteca gráfica do Google necessária para ler o Sheets
-    google.charts.load('current', { packages: ['corechart'] });
+    // URL convertida para exportação direta em CSV
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT-99Jw1lDuB8MtCo9qp4lVHWOVMdw9NIN-D7nG-8TlG9XbmfBVrlkmdbZd-t27Fw0EON1_jw_eoS2c/pub?output=csv';
 
     const searchInput = document.getElementById('searchInput');
+    const initialStateEl = document.getElementById('initialState');
     const loadingEl = document.getElementById('loading');
     const resultsEl = document.getElementById('results');
     const emptyStateEl = document.getElementById('emptyState');
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function getStatusClass(status) {
-        if (!status) return 'status-default';
-        const s = status.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-        if (s.includes('transito')) return 'status-em-transito';
-        if (s.includes('pendente')) return 'status-pendente';
-        if (s.includes('retido')) return 'status-retido';
-        if (s.includes('extraviado') || s.includes('perdido')) return 'status-extraviado';
-        return 'status-default';
-    }
-
-    function getInitials(name) {
-        if (!name) return '?';
-        const parts = name.trim().split(/\s+/);
-        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-        return parts[0][0].toUpperCase();
-    }
-
-    // Atalho Enter
     searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') searchDOP();
     });
 
-    // Converter para maiúsculas
     searchInput.addEventListener('input', () => {
         searchInput.value = searchInput.value.toUpperCase();
     });
 
-    // Busca de dados utilizando a API nativa do Google Visualization
-    function fetchSheetData() {
-        return new Promise((resolve, reject) => {
-            const queryUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=${encodeURIComponent(SHEET_NAME)}&headers=1`;
-            const query = new google.visualization.Query(queryUrl);
-
-            query.send((response) => {
-                if (response.isError()) {
-                    reject(new Error(response.getMessage()));
-                    return;
+    // Leitor de CSV com suporte a aspas e vírgulas
+    function parseCSV(text) {
+        const lines = text.split('\n');
+        return lines.map(line => {
+            const row = [];
+            let insideQuote = false;
+            let entry = '';
+            for (let char of line) {
+                if (char === '"') {
+                    insideQuote = !insideQuote;
+                } else if (char === ',' && !insideQuote) {
+                    row.push(entry.trim());
+                    entry = '';
+                } else {
+                    entry += char;
                 }
-
-                const dataTable = response.getDataTable();
-                const numRows = dataTable.getNumberOfRows();
-                const records = [];
-
-                for (let i = 0; i < numRows; i++) {
-                    records.push({
-                        codigoDOP: (dataTable.getValue(i, 0) || '').toString().trim(),
-                        nomeAgencia: (dataTable.getValue(i, 1) || '').toString().trim(),
-                        codigoPacote: (dataTable.getValue(i, 2) || '').toString().trim(),
-                        nomeComprador: (dataTable.getValue(i, 3) || '').toString().trim(),
-                        statusPacote: (dataTable.getValue(i, 4) || '').toString().trim(),
-                        telefone: (dataTable.getValue(i, 5) || '').toString().trim(),
-                        acaoNecessaria: (dataTable.getValue(i, 6) || '').toString().trim(),
-                    });
-                }
-                resolve(records);
-            });
+            }
+            row.push(entry.trim());
+            return row;
         });
+    }
+
+    async function fetchSheetCSV() {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error("Erro ao acessar a planilha");
+        const text = await response.text();
+        const rows = parseCSV(text);
+        
+        // Remove cabeçalho e mapeia por posições das colunas A, B, C, D, E, F, G
+        return rows.slice(1).map(row => ({
+            codigoDOP: (row[0] || '').replace(/^"|"$/g, '').trim(),      // Coluna A
+            nomeAgencia: (row[1] || '').replace(/^"|"$/g, '').trim(),    // Coluna B
+            codigoPacote: (row[2] || '').replace(/^"|"$/g, '').trim(),   // Coluna C
+            nomeComprador: (row[3] || '').replace(/^"|"$/g, '').trim(),  // Coluna D
+            statusPacote: (row[4] || '').replace(/^"|"$/g, '').trim(),   // Coluna E
+            telefone: (row[5] || '').replace(/^"|"$/g, '').trim(),       // Coluna F
+            acaoNecessaria: (row[6] || '').replace(/^"|"$/g, '').trim()  // Coluna G
+        }));
     }
 
     async function searchDOP() {
@@ -87,32 +359,31 @@
             return;
         }
 
-        // Reset UI
+        initialStateEl.classList.remove('active');
         resultsEl.innerHTML = '';
         resultsEl.classList.remove('active');
         emptyStateEl.classList.remove('active');
         loadingEl.classList.add('active');
 
         try {
-            const allRecords = await fetchSheetData();
+            const allRecords = await fetchSheetCSV();
             const filtered = allRecords.filter(r => r.codigoDOP.toUpperCase() === query);
 
             loadingEl.classList.remove('active');
 
             if (filtered.length === 0) {
                 emptyStateEl.classList.add('active');
-                document.getElementById('emptyTitle').textContent = 'Nenhum resultado encontrado';
-                document.getElementById('emptyMessage').textContent = `O código "${query}" não foi encontrado na base de dados. Verifique o código e tente novamente.`;
+                document.getElementById('emptyTitle').textContent = 'Nenhum pacote encontrado';
+                document.getElementById('emptyMessage').textContent = `O código DOP "${query}" não possui registros pendentes.`;
                 return;
             }
 
-            const agencyName = filtered[0].nomeAgencia || 'Agência não identificada';
+            const agencyName = filtered[0].nomeAgencia || 'Agência não informada';
             const totalPackages = filtered.length;
 
-            // Agrupar por comprador
             const buyerMap = new Map();
             filtered.forEach(record => {
-                const key = record.nomeComprador || 'Sem nome';
+                const key = record.nomeComprador || 'Comprador Desconhecido';
                 if (!buyerMap.has(key)) {
                     buyerMap.set(key, {
                         name: record.nomeComprador,
@@ -123,20 +394,11 @@
                 buyerMap.get(key).packages.push(record);
             });
 
-            // Montar HTML do resultado
             let html = `
-                <div class="agency-header glass">
+                <div class="agency-header">
                     <div class="agency-info">
-                        <div class="agency-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                                <polyline points="9 22 9 12 15 12 15 22"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="agency-name">${escapeHtml(agencyName)}</div>
-                            <div class="agency-code">DOP: ${escapeHtml(query)}</div>
-                        </div>
+                        <h2>${agencyName}</h2>
+                        <span>Código DOP: <strong>${query}</strong></span>
                     </div>
                     <div class="total-badge">
                         <span class="number">${totalPackages}</span>
@@ -147,19 +409,10 @@
 
             buyerMap.forEach((buyer) => {
                 html += `
-                    <div class="buyer-card glass">
+                    <div class="buyer-card">
                         <div class="buyer-header">
-                            <div class="buyer-name-area">
-                                <div class="buyer-avatar">${getInitials(buyer.name)}</div>
-                                <div>
-                                    <div class="buyer-name">${escapeHtml(buyer.name || 'Sem nome')}</div>
-                                    <div class="buyer-phone">
-                                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                        ${escapeHtml(buyer.phone || 'Não informado')}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="buyer-count">${buyer.packages.length} pacote${buyer.packages.length > 1 ? 's' : ''}</div>
+                            <div class="buyer-name">${buyer.name || 'Comprador Desconhecido'}</div>
+                            <div class="buyer-phone">📞 Telefone: ${buyer.phone || 'Não informado'}</div>
                         </div>
                         <table class="packages-table">
                             <thead>
@@ -175,9 +428,9 @@
                 buyer.packages.forEach(pkg => {
                     html += `
                         <tr>
-                            <td>${escapeHtml(pkg.codigoPacote)}</td>
-                            <td><span class="status-badge ${getStatusClass(pkg.statusPacote)}">${escapeHtml(pkg.statusPacote)}</span></td>
-                            <td class="action-text">${escapeHtml(pkg.acaoNecessaria)}</td>
+                            <td><strong>${pkg.codigoPacote}</strong></td>
+                            <td><span class="status-badge">${pkg.statusPacote}</span></td>
+                            <td class="action-text">${pkg.acaoNecessaria}</td>
                         </tr>
                     `;
                 });
@@ -196,8 +449,11 @@
             loadingEl.classList.remove('active');
             emptyStateEl.classList.add('active');
             document.getElementById('emptyTitle').textContent = 'Erro ao buscar dados';
-            document.getElementById('emptyMessage').textContent = 'Não foi possível carregar as informações. Verifique a permissão do Google Sheets.';
-            console.error('Erro na requisição:', error);
+            document.getElementById('emptyMessage').textContent = 'Ocorreu um problema ao conectar com a planilha do Google.';
+            console.error(error);
         }
     }
 </script>
+
+</body>
+</html>
