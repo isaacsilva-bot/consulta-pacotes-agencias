@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Consulta de Pacotes - AgÃªncias SPX</title>
+    <title>Consulta de Pacotes - Agencias SPX</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -856,7 +856,7 @@
             loadingEl.classList.remove('active');
             emptyStateEl.classList.add('active');
             document.getElementById('emptyTitle').textContent = 'Erro ao buscar dados';
-            document.getElementById('emptyMessage').textContent = 'Verifique se a planilha estÃ¡ compartilhada como "Qualquer pessoa com o link pode visualizar" e tente novamente.';
+            document.getElementById('emptyMessage').textContent = 'Não encontramos informações sobre sua agencia. Por favor, aguarde atualização.';
             console.error('Erro:', error);
         }
     }
