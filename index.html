@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Pacotes - AgÃªncias SPX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FF6B35 0%, #EE4D2D 30%, #D4380D 60%, #FF8C00 100%);
+            background-attachment: fixed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
+                        radial-gradient(circle at 50% 80%, rgba(255, 140, 0, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-shape {
+            position: fixed;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.04);
+            animation: float 20s infinite ease-in-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-shape:nth-child(1) { width: 300px; height: 300px; top: 10%; left: -5%; animation-delay: 0s; }
+        .floating-shape:nth-child(2) { width: 200px; height: 200px; top: 60%; right: -3%; animation-delay: -5s; }
+        .floating-shape:nth-child(3) { width: 150px; height: 150px; bottom: 10%; left: 20%; animation-delay: -10s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-30px) rotate(5deg); }
+            50% { transform: translateY(0) rotate(0deg); }
+            75% { transform: translateY(30px) rotate(-5deg); }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 30px 30px 25px;
+            margin-bottom: 20px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 26px;
+            font-weight: 800;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* Search Area */
+        .search-area {
+            padding: 28px 30px;
+            margin-bottom: 20px;
+        }
+
+        .search-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 14px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 400;
+        }
+
+        .search-input:focus {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.22);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+        }
+
+        .search-btn {
+            padding: 14px 28px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #EE4D2D;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .search-btn:active {
+            transform: translateY(0);
+        }
+
+        .search-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        /* Agency Header */
+        .agency-header {
+            padding: 24px 28px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .agency-info {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .agency-icon {
+            width: 46px;
+            height: 46px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .agency-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: #fff;
+        }
+
+        .agency-name {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .agency-code {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .total-badge {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .total-badge .number {
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
+            display: block;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .total-badge .label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: block;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        /* Buyer Card */
+        .buyer-card {
+            padding: 24px 28px;
+            margin-bottom: 14px;
+            transition: transform 0.2s ease;
+        }
+
+        .buyer-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .buyer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .buyer-name-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .buyer-avatar {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #FF8C00, #EE4D2D);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .buyer-name {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .buyer-phone {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-weight: 400;
+            margin-top: 1px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .buyer-phone svg {
+            width: 13px;
+            height: 13px;
+            fill: rgba(255, 255, 255, 0.5);
+        }
+
+        .buyer-count {
+            padding: 5px 14px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Package Row */
+        .packages-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+        }
+
+        .packages-table th {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0 12px 8px;
+            text-align: left;
+        }
+
+        .packages-table td {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 400;
+        }
+
+        .packages-table tr td:first-child {
+            border-radius: 10px 0 0 10px;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .packages-table tr td:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Status badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-em-transito {
+            background: rgba(52, 168, 83, 0.25);
+            color: #8beb9e;
+            border: 1px solid rgba(52, 168, 83, 0.3);
+        }
+
+        .status-pendente {
+            background: rgba(255, 193, 7, 0.25);
+            color: #ffd95a;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-retido {
+            background: rgba(255, 107, 53, 0.3);
+            color: #ffb899;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .status-extraviado {
+            background: rgba(234, 67, 53, 0.3);
+            color: #ff9a92;
+            border: 1px solid rgba(234, 67, 53, 0.3);
+        }
+
+        .status-default {
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .action-text {
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 50px 30px;
+        }
+
+        .empty-state.active {
+            display: block;
+        }
+
+        .empty-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .empty-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state h3 {
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            max-width: 350px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Config Banner */
+        .config-banner {
+            padding: 16px 24px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .config-banner.active {
+            display: flex;
+        }
+
+        .config-banner svg {
+            width: 20px;
+            height: 20px;
+            fill: rgba(255, 255, 255, 0.7);
+            flex-shrink: 0;
+        }
+
+        .config-banner p {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .config-banner a {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 10px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .header { padding: 20px; }
+            .header h1 { font-size: 20px; }
+            .search-area { padding: 20px; }
+            .search-box { flex-direction: column; }
+            .search-btn { justify-content: center; }
+            .agency-header { padding: 18px 20px; flex-direction: column; align-items: flex-start; }
+            .buyer-card { padding: 18px 20px; }
+            .packages-table { font-size: 12px; }
+            .packages-table th, .packages-table td { padding: 8px 6px; }
+            .buyer-header { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="floating-shape"></div>
+<div class="floating-shape"></div>
+<div class="floating-shape"></div>
+
+<div class="container">
+    <!-- Header -->
+    <div class="header glass">
+        <div class="logo-area">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#EE4D2D" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                    <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+            </div>
+            <h1>Consulta de Pacotes</h1>
+        </div>
+        <p>Sistema de consulta para agÃªncias SPX</p>
+    </div>
+
+    <!-- Config Banner -->
+    <div id="configBanner" class="config-banner glass-dark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Configure o ID da planilha no cÃ³digo do aplicativo para conectar com seus dados. <a href="https://docs.google.com/spreadsheets/d/1EDlHIsSycfl-MYxMWuaiTGqXN9dfmflRmueVR_WMRLQ/edit" target="_blank">Planilha modelo</a></p>
+    </div>
+
+    <!-- Search -->
+    <div class="search-area glass">
+        <label class="search-label">Digite o CÃ³digo DOP da AgÃªncia</label>
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Ex: DOP5369" autocomplete="off">
+            <button id="searchBtn" class="search-btn" onclick="searchDOP()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                Consultar
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Buscando informaÃ§Ãµes...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state glass">
+        <div class="empty-icon">
+            <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/><circle cx="12" cy="7" r="4" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/></svg>
+        </div>
+        <h3 id="emptyTitle">Nenhum resultado encontrado</h3>
+        <p id="emptyMessage">O cÃ³digo DOP informado nÃ£o foi encontrado na base de dados. Verifique o cÃ³digo e tente novamente.</p>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="results"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+        SPX Express - RJ2 &bull; Desenvolvido para consulta das agÃªncias
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // CONFIGURAÃÃO: Insira o ID da sua planilha Google Sheets aqui
+    // ============================================================
+    const SPREADSHEET_ID = '1EDlHIsSycfl-MYxMWuaiTGqXN9dfmflRmueVR_WMRLQ';
+    const SHEET_NAME = 'Dados';
+    // ============================================================
+
+    const searchInput = document.getElementById('searchInput');
+    const loadingEl = document.getElementById('loading');
+    const resultsEl = document.getElementById('results');
+    const emptyStateEl = document.getElementById('emptyState');
+
+    // Enter to search
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchDOP();
+    });
+
+    // Auto uppercase
+    searchInput.addEventListener('input', () => {
+        searchInput.value = searchInput.value.toUpperCase();
+    });
+
+    async function fetchSheetData() {
+        const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+        const response = await fetch(url);
+        const text = await response.text();
+
+        // The response is wrapped in google.visualization.Query.setResponse(...)
+        const jsonText = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?/);
+        if (!jsonText) throw new Error('Formato de resposta invÃ¡lido');
+
+        const data = JSON.parse(jsonText[1]);
+        const rows = data.table.rows;
+        const cols = data.table.cols;
+
+        // Skip header row (first row), map to objects
+        const records = [];
+        for (let i = 1; i < rows.length; i++) {
+            const row = rows[i];
+            if (!row.c || !row.c[0] || !row.c[0].v) continue;
+            records.push({
+                codigoDOP: (row.c[0]?.v || '').toString().trim(),
+                nomeAgencia: (row.c[1]?.v || '').toString().trim(),
+                codigoPacote: (row.c[2]?.v || '').toString().trim(),
+                nomeComprador: (row.c[3]?.v || '').toString().trim(),
+                statusPacote: (row.c[4]?.v || '').toString().trim(),
+                telefone: (row.c[5]?.v || '').toString().trim(),
+                acaoNecessaria: (row.c[6]?.v || '').toString().trim(),
+            });
+        }
+
+        // Also check if header row is actually data (in case no header)
+        if (rows.length > 0 && rows[0].c && rows[0].c[0]) {
+            const firstVal = (rows[0].c[0].v || '').toString().trim();
+            if (firstVal.toUpperCase().startsWith('DOP')) {
+                records.unshift({
+                    codigoDOP: firstVal,
+                    nomeAgencia: (rows[0].c[1]?.v || '').toString().trim(),
+                    codigoPacote: (rows[0].c[2]?.v || '').toString().trim(),
+                    nomeComprador: (rows[0].c[3]?.v || '').toString().trim(),
+                    statusPacote: (rows[0].c[4]?.v || '').toString().trim(),
+                    telefone: (rows[0].c[5]?.v || '').toString().trim(),
+                    acaoNecessaria: (rows[0].c[6]?.v || '').toString().trim(),
+                });
+            }
+        }
+
+        return records;
+    }
+
+    function getStatusClass(status) {
+        const s = status.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (s.includes('transito') || s.includes('trÃ¢nsito')) return 'status-em-transito';
+        if (s.includes('pendente')) return 'status-pendente';
+        if (s.includes('retido')) return 'status-retido';
+        if (s.includes('extraviado') || s.includes('perdido')) return 'status-extraviado';
+        return 'status-default';
+    }
+
+    function getInitials(name) {
+        if (!name) return '?';
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return parts[0][0].toUpperCase();
+    }
+
+    async function searchDOP() {
+        const query = searchInput.value.trim().toUpperCase();
+        if (!query) {
+            searchInput.focus();
+            return;
+        }
+
+        // Reset
+        resultsEl.innerHTML = '';
+        resultsEl.classList.remove('active');
+        emptyStateEl.classList.remove('active');
+        loadingEl.classList.add('active');
+
+        try {
+            const allRecords = await fetchSheetData();
+            const filtered = allRecords.filter(r => r.codigoDOP.toUpperCase() === query);
+
+            loadingEl.classList.remove('active');
+
+            if (filtered.length === 0) {
+                emptyStateEl.classList.add('active');
+                document.getElementById('emptyTitle').textContent = 'Nenhum resultado encontrado';
+                document.getElementById('emptyMessage').textContent = `O cÃ³digo "${query}" nÃ£o foi encontrado na base de dados. Verifique o cÃ³digo e tente novamente.`;
+                return;
+            }
+
+            const agencyName = filtered[0].nomeAgencia || 'AgÃªncia nÃ£o identificada';
+            const totalPackages = filtered.length;
+
+            // Group by buyer
+            const buyerMap = new Map();
+            filtered.forEach(record => {
+                const key = record.nomeComprador || 'Sem nome';
+                if (!buyerMap.has(key)) {
+                    buyerMap.set(key, {
+                        name: record.nomeComprador,
+                        phone: record.telefone,
+                        packages: []
+                    });
+                }
+                buyerMap.get(key).packages.push(record);
+            });
+
+            // Build HTML
+            let html = '';
+
+            // Agency header
+            html += `
+                <div class="agency-header glass">
+                    <div class="agency-info">
+                        <div class="agency-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="agency-name">${escapeHtml(agencyName)}</div>
+                            <div class="agency-code">${escapeHtml(query)}</div>
+                        </div>
+                    </div>
+                    <div class="total-badge">
+                        <span class="number">${totalPackages}</span>
+                        <span class="label">Pacotes em falta</span>
+                    </div>
+                </div>
+            `;
+
+            // Buyer cards
+            buyerMap.forEach((buyer) => {
+                html += `
+                    <div class="buyer-card glass">
+                        <div class="buyer-header">
+                            <div class="buyer-name-area">
+                                <div class="buyer-avatar">${getInitials(buyer.name)}</div>
+                                <div>
+                                    <div class="buyer-name">${escapeHtml(buyer.name || 'Sem nome')}</div>
+                                    <div class="buyer-phone">
+                                        <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                        ${escapeHtml(buyer.phone || 'NÃ£o informado')}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="buyer-count">${buyer.packages.length} pacote${buyer.packages.length > 1 ? 's' : ''}</div>
+                        </div>
+                        <table class="packages-table">
+                            <thead>
+                                <tr>
+                                    <th>CÃ³digo do Pacote</th>
+                                    <th>Status</th>
+                                    <th>AÃ§Ã£o NecessÃ¡ria</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+
+                buyer.packages.forEach(pkg => {
+                    html += `
+                        <tr>
+                            <td>${escapeHtml(pkg.codigoPacote)}</td>
+                            <td><span class="status-badge ${getStatusClass(pkg.statusPacote)}">${escapeHtml(pkg.statusPacote)}</span></td>
+                            <td class="action-text">${escapeHtml(pkg.acaoNecessaria)}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            });
+
+            resultsEl.innerHTML = html;
+            resultsEl.classList.add('active');
+
+        } catch (error) {
+            loadingEl.classList.remove('active');
+            emptyStateEl.classList.add('active');
+            document.getElementById('emptyTitle').textContent = 'Erro ao buscar dados';
+            document.getElementById('emptyMessage').textContent = 'Verifique se a planilha estÃ¡ compartilhada como "Qualquer pessoa com o link pode visualizar" e tente novamente.';
+            console.error('Erro:', error);
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+</script>
+
+</body>
+</html>
